@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
                             20);    // spherical coordinate azimuth angle
     */
     // position and orient the camera
-    camera->set( cVector3d (0.4, 0.0, 0.2),    // camera position (eye)
+    camera->set( cVector3d (2.4, 0.0, 0.2),    // camera position (eye)
                  cVector3d (0.0, 0.0, 0.0),    // lookat position (target)
                  cVector3d (0.0, 0.0, 1.0));   // direction of the (up) vector
 
@@ -303,11 +303,13 @@ int main(int argc, char* argv[])
     camera->setClippingPlanes(0.01, 100);
 
     // set stereo mode
-    camera->setStereoMode(stereoMode);
+    //camera->setStereoMode(stereoMode);
+
+    camera->setOrthographicView(3); // I think an ortographic view will be more appropriate
 
     // set stereo eye separation and focal length (applies only if stereo is enabled)
-    camera->setStereoEyeSeparation(0.03);
-    camera->setStereoFocalLength(1.5);
+    //camera->setStereoEyeSeparation(0.03);
+    //camera->setStereoFocalLength(1.5);
 
     // set vertical mirrored display mode
     camera->setMirrorVertical(mirroredDisplay);
@@ -397,12 +399,15 @@ int main(int argc, char* argv[])
     // create a virtual mesh
     object = new cMultiMesh();
 
+    // Rotate object
+    object->rotateAboutLocalAxisDeg(cVector3d(0,0,1), 90);
+
     // add object to world
     world->addChild(object);
 
     // load an object file
     bool fileload;
-    fileload = object->loadFromFile("./Acoustic\ Guitar/Models\ and\ Textures/guitar.obj");
+    fileload = object->loadFromFile("./just-strings.obj");
     if (!fileload)
     {
         #if defined(_MSVC)
