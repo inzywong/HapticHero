@@ -39,6 +39,29 @@ bool mirroredDisplay = false;
 
 
 //------------------------------------------------------------------------------
+// GENERAL STRUCTS
+//------------------------------------------------------------------------------
+struct GuitarString{
+    string tone;
+    cVector3d posStart;
+    cVector3d posEnd;
+    cShapeLine *line;
+
+    GuitarString(string t,cVector3d start, cVector3d end){
+        tone = t;
+        posStart = start;
+        posEnd = end;
+        line = new cShapeLine(posStart, posEnd);
+    }
+
+    cShapeLine* getLine(){
+        return line;
+    }
+
+};
+
+
+//------------------------------------------------------------------------------
 // DECLARED VARIABLES
 //------------------------------------------------------------------------------
 
@@ -52,7 +75,7 @@ cCamera* camera;
 cDirectionalLight *light;
 
 // a virtual object
-cMultiMesh* object;
+cShapeLine* object;
 
 // a haptic device handler
 cHapticDeviceHandler* handler;
@@ -109,7 +132,6 @@ int swapInterval = 1;
 
 // root resource path
 string resourceRoot;
-
 
 //------------------------------------------------------------------------------
 // DECLARED MACROS
@@ -282,19 +304,8 @@ int main(int argc, char* argv[])
     camera = new cCamera(world);
     world->addChild(camera);
 
-
-    /*
-    // define a basis in spherical coordinates for the camera
-    camera->setSphericalReferences(cVector3d(0.8, 0.0, 0.5),    // origin
-                                   cVector3d(0.0, 0.0, 1.0),    // zenith direction
-                                   cVector3d(1.0, 0.0, 0.0));   // azimuth direction
-
-    camera->setSphericalDeg(1.0,    // spherical coordinate radius
-                            65,     // spherical coordinate polar angle
-                            20);    // spherical coordinate azimuth angle
-    */
     // position and orient the camera
-    camera->set( cVector3d (2.4, 0.0, 0.2),    // camera position (eye)
+    camera->set( cVector3d (0.1, 0.0, 0.2),    // camera position (eye)
                  cVector3d (0.0, 0.0, 0.0),    // lookat position (target)
                  cVector3d (0.0, 0.0, 1.0));   // direction of the (up) vector
 
@@ -305,7 +316,7 @@ int main(int argc, char* argv[])
     // set stereo mode
     //camera->setStereoMode(stereoMode);
 
-    camera->setOrthographicView(3); // I think an ortographic view will be more appropriate
+    camera->setOrthographicView(1); // I think an ortographic view will be more appropriate
 
     // set stereo eye separation and focal length (applies only if stereo is enabled)
     //camera->setStereoEyeSeparation(0.03);
@@ -331,7 +342,7 @@ int main(int argc, char* argv[])
 
     // set lighting conditions
     light->m_ambient.set(0.4f, 0.4f, 0.4f);
-    light->m_diffuse.set(0.8f, 0.8f, 0.8f);
+    light->m_diffuse.set(0.0f, 0.8f, 0.0f);
     light->m_specular.set(1.0f, 1.0f, 1.0f);
 
 
@@ -339,10 +350,8 @@ int main(int argc, char* argv[])
     // HAPTIC DEVICES / TOOLS
     //--------------------------------------------------------------------------
 
-    // create a haptic device handler
+    // create a haptic device handler and get the first device
     handler = new cHapticDeviceHandler();
-
-    // get access to the first available haptic device found
     handler->getDevice(hapticDevice, 0);
 
     // retrieve information about the current haptic device
@@ -356,12 +365,10 @@ int main(int argc, char* argv[])
     tool->setHapticDevice(hapticDevice);
 
     // if the haptic device has a gripper, enable it as a user switch
+    // Button on manipulandum thing?? Has to be true, nothing works otherwise
     hapticDevice->setEnableGripperUserSwitch(true);
 
-    // define the radius of the tool (sphere)
     double toolRadius = 0.01;
-
-    // define a radius for the tool
     tool->setRadius(toolRadius);
 
     // hide the device sphere. only show proxy.
@@ -372,8 +379,9 @@ int main(int argc, char* argv[])
 
     // map the physical workspace of the haptic device to a larger virtual workspace.
     tool->setWorkspaceRadius(0.1);
+    //tool->setWorkspaceScaleFactor(1.0);
 
-    // oriente tool with camera
+    // oriente el toolo con camerana
     tool->setLocalRot(camera->getLocalRot());
 
     // haptic forces are enabled only if small forces are first sent to the device;
@@ -397,92 +405,26 @@ int main(int argc, char* argv[])
     double maxStiffness	= hapticDeviceInfo.m_maxLinearStiffness / workspaceScaleFactor;
 
     // create a virtual mesh
-    object = new cMultiMesh();
-
+    double offset = 0.3;
+    double spacing = 0.1;
+    std::vector<GuitarString*> object;
+    for (int i=0; i<6; i++){
+        GuitarString* gString = new GuitarString("E",
+            cVector3d(0,-1,-offset+i*spacing),
+            cVector3d(0,1,-offset+i*spacing));
+        object.push_back(gString);
+    }
     // Rotate object
-    object->rotateAboutLocalAxisDeg(cVector3d(0,0,1), 90);
+    //object->rotateAboutLocalAxisDeg(cVector3d(0,0,1), 90);
+
+    cout<<object.size()<<endl;
+
 
     // add object to world
-    world->addChild(object);
-
-    // load an object file
-    bool fileload;
-    fileload = object->loadFromFile("./just-strings.obj");
-    if (!fileload)
-    {
-        #if defined(_MSVC)
-        fileload = object->loadFromFile("gu.obj");
-        #endif
-    }
-    if (!fileload)
-    {
-        cout << "Error - 3D Model failed to load correctly" << endl;
-        close();
-        return (-1);
+    for (int i=0; i<object.size(); i++){
+        world->addChild(object[i]->getLine());
     }
 
-
-/*
-    // get dimensions of object
-    object->computeBoundaryBox(true);
-    double size = cSub(object->getBoundaryMax(), object->getBoundaryMin()).length();
-
-    // resize object to screen
-    if (size > 0.001)
-    {
-        object->scale(1.0 / size);
-    }
-*/
-
-    cMaterial m;
-    m.setBlueCadet();
-    object->setMaterial(m);
-
-    // disable culling so that faces are rendered on both sides
-    object->setUseCulling(false);
-
-    // compute a boundary box
-    object->computeBoundaryBox(true);
-
-    // show/hide boundary box
-    object->setShowBoundaryBox(false);
-
-    // compute collision detection algorithm
-    object->createAABBCollisionDetector(toolRadius);
-
-    // define a default stiffness for the object
-    object->setStiffness(0.2 * maxStiffness, true);
-
-    // define some haptic friction properties
-    object->setFriction(0.1, 0.2, true);
-
-    // enable display list for faster graphic rendering
-    object->setUseDisplayList(true);
-
-    // center object in scene
-    object->setLocalPos(-1.0 * object->getBoundaryCenter());
-
-    // rotate object in scene
-    //object->rotateExtrinsicEulerAnglesDeg(0, 0, 90, C_EULER_ORDER_XYZ);
-
-
-    // compute all edges of object for which adjacent triangles have more than 40 degree angle
-    object->computeAllEdges(0);
-
-    // set line width of edges and color
-    cColorf colorEdges;
-    colorEdges.setBlack();
-    object->setEdgeProperties(1, colorEdges);
-
-    // set normal properties for display
-    cColorf colorNormals;
-    colorNormals.setOrangeTomato();
-    object->setNormalsProperties(0.01, colorNormals);
-
-    // display options
-    object->setShowTriangles(showTriangles);
-    object->setShowEdges(showEdges);
-    object->setShowNormals(showNormals);
 
 
     //--------------------------------------------------------------------------
@@ -639,26 +581,7 @@ void keyCallback(GLFWwindow* a_window, int a_key, int a_scancode, int a_action, 
         cout << "> Saved screenshot to file.       \r";
     }
 
-    // option - show/hide triangles
-    else if (a_key == GLFW_KEY_T)
-    {
-        showTriangles = !showTriangles;
-        object->setShowTriangles(showTriangles);
-    }
 
-    // option - show/hide edges
-    else if (a_key == GLFW_KEY_E)
-    {
-        showEdges = !showEdges;
-        object->setShowEdges(showEdges);
-    }
-
-    // option - show/hide normals
-    else if (a_key == GLFW_KEY_N)
-    {
-        showNormals = !showNormals;
-        object->setShowNormals(showNormals);
-    }
 
     // option - toggle fullscreen
     else if (a_key == GLFW_KEY_F)
@@ -804,32 +727,32 @@ void updateHaptics(void)
         //
         if ((state == IDLE) && (button == true))
         {
-            // check if at least one contact has occurred
-            if (tool->m_hapticPoint->getNumCollisionEvents() > 0)
-            {
-                // get contact event
-                cCollisionEvent* collisionEvent = tool->m_hapticPoint->getCollisionEvent(0);
+//            // check if at least one contact has occurred
+//            if (tool->m_hapticPoint->getNumCollisionEvents() > 0)
+//            {
+//                // get contact event
+//                cCollisionEvent* collisionEvent = tool->m_hapticPoint->getCollisionEvent(0);
 
-                // get object from contact event
-                selectedObject = collisionEvent->m_object;
-            }
-            else
-            {
-                selectedObject = object;
-            }
+//                // get object from contact event
+//                selectedObject = collisionEvent->m_object;
+//            }
+//            else
+//            {
+//                selectedObject = object;
+//            }
 
-            // get transformation from object
-            cTransform world_T_object = selectedObject->getGlobalTransform();
+//            // get transformation from object
+//            cTransform world_T_object = selectedObject->getGlobalTransform();
 
-            // compute inverse transformation from contact point to object
-            cTransform tool_T_world = world_T_tool;
-            tool_T_world.invert();
+//            // compute inverse transformation from contact point to object
+//            cTransform tool_T_world = world_T_tool;
+//            tool_T_world.invert();
 
-            // store current transformation tool
-            tool_T_object = tool_T_world * world_T_object;
+//            // store current transformation tool
+//            tool_T_object = tool_T_world * world_T_object;
 
-            // update state
-            state = SELECTION;
+//            // update state
+//            state = SELECTION;
         }
 
 
@@ -839,21 +762,21 @@ void updateHaptics(void)
         //
         else if ((state == SELECTION) && (button == true))
         {
-            // compute new transformation of object in global coordinates
-            cTransform world_T_object = world_T_tool * tool_T_object;
+//            // compute new transformation of object in global coordinates
+//            cTransform world_T_object = world_T_tool * tool_T_object;
 
-            // compute new transformation of object in local coordinates
-            cTransform parent_T_world = selectedObject->getParent()->getLocalTransform();
-            parent_T_world.invert();
-            cTransform parent_T_object = parent_T_world * world_T_object;
+//            // compute new transformation of object in local coordinates
+//            cTransform parent_T_world = selectedObject->getParent()->getLocalTransform();
+//            parent_T_world.invert();
+//            cTransform parent_T_object = parent_T_world * world_T_object;
 
-            // assign new local transformation to object
-            selectedObject->setLocalTransform(parent_T_object);
+//            // assign new local transformation to object
+//            selectedObject->setLocalTransform(parent_T_object);
 
-            // set zero forces when manipulating objects
-            tool->setDeviceGlobalForce(0.0, 0.0, 0.0);
+//            // set zero forces when manipulating objects
+//            tool->setDeviceGlobalForce(0.0, 0.0, 0.0);
 
-            tool->initialize();
+//            tool->initialize();
         }
 
         //
@@ -866,12 +789,21 @@ void updateHaptics(void)
         }
 
 
-        /////////////////////////////////////////////////////////////////////////
-        // FINALIZE
-        /////////////////////////////////////////////////////////////////////////
+        double k = -1000;
+        double pluckDist = 0.5;
+        cVector3d stringForce(0,0,0);
+        cVector3d devicePos;
+        hapticDevice->getPosition(devicePos);
 
-        // send forces to haptic device
-        tool->applyToDevice();
+        if(devicePos.z() > 0){
+            stringForce.z(k*abs(devicePos.z()));
+            if(devicePos.z() >= pluckDist){
+                stringForce.z(0);
+            }
+        }
+
+        hapticDevice->setForce(stringForce);
+
     }
 
     // exit haptics thread
