@@ -297,9 +297,6 @@ int main(int argc, char* argv[])
     // create a new world.
     world = new cWorld();
 
-    // set the background color of the environment
-    world->m_backgroundColor.setBlack();
-
     // create a camera and insert it into the virtual world
     camera = new cCamera(world);
     world->addChild(camera);
@@ -341,9 +338,29 @@ int main(int argc, char* argv[])
     light->setDir(-3.0,-0.5, 0.0);
 
     // set lighting conditions
-    light->m_ambient.set(0.4f, 0.4f, 0.4f);
-    light->m_diffuse.set(0.0f, 0.8f, 0.0f);
-    light->m_specular.set(1.0f, 1.0f, 1.0f);
+//    light->m_ambient.set(0.4f, 0.4f, 0.4f);
+//    light->m_diffuse.set(0.0f, 0.8f, 0.0f);
+//    light->m_specular.set(1.0f, 1.0f, 1.0f);
+
+    // create a background
+    background = new cBackground();
+    camera->m_backLayer->addChild(background);
+
+    // load a texture file
+    bool fileload = background->loadFromFile("img/guitar.jpg");
+    if (!fileload)
+    {
+        #if defined(_MSVC)
+        fileload = background->loadFromFile("img/guitar.jpg");
+        #endif
+    }
+    if (!fileload)
+    {
+        cout << "Error - Background image failed to load correctly." << endl;
+        close();
+        return (-1);
+    }
+
 
 
     //--------------------------------------------------------------------------
@@ -438,17 +455,6 @@ int main(int argc, char* argv[])
     labelRates = new cLabel(font);
     labelRates->m_fontColor.setBlack();
     camera->m_frontLayer->addChild(labelRates);
-
-    // create a background
-    background = new cBackground();
-    camera->m_backLayer->addChild(background);
-
-    // set background properties
-    background->setCornerColors(cColorf(0.95f, 0.95f, 0.95f),
-                                cColorf(0.95f, 0.95f, 0.95f),
-                                cColorf(0.80f, 0.80f, 0.80f),
-                                cColorf(0.80f, 0.80f, 0.80f));
-
 
     //--------------------------------------------------------------------------
     // START SIMULATION
