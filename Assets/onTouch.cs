@@ -7,6 +7,7 @@ public class onTouch : MonoBehaviour
   public int[] vibLength = new int[6];
   private string[] stringNames = new string[] { "E", "A", "D", "G", "B", "e" };
   private Dictionary<string, int> stringVib;
+  public Camera myCamera;
 
   // Use this for initialization
   void Start()
@@ -33,6 +34,14 @@ public class onTouch : MonoBehaviour
 
   private void PlayString(string name)
   {
-    Vibration.CreateOneShot(stringVib[name]);
+    if(Vibration.HasAmplituideControl()){
+      myCamera.backgroundColor = Color.green;
+      
+      Vibration.CreateOneShot(1000, stringVib[name]);
+    }
+    else{
+      myCamera.backgroundColor = Color.blue;
+      Vibration.Vibrate(2000);
+    }
   }
 }
