@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Yngwe : MonoBehaviour
+public class GuitarStringInteraction : MonoBehaviour
 {
   int count;
   // String state
@@ -12,8 +12,11 @@ public class Yngwe : MonoBehaviour
   public Text currentState;
   LineRenderer guitarString;
   float distToLine;
-
-  public CapsuleCollider cl;
+  float ringingAmplitude;
+  float ringTime;
+  public float swingSpeed = 10;
+  public float swingDecay = 2;
+  public float maxRingTime = 1.5f;
 
   void Start()
   {
@@ -50,16 +53,37 @@ public class Yngwe : MonoBehaviour
           Vector3 worldPos = new Vector3(touchPos.x, touchPos.y, distToLine);
           worldPos = Camera.main.ScreenToWorldPoint(worldPos);
           worldPos.z = 0; // Force same z position
-          guitarString.SetPosition(1, worldPos); // Change position of middle point
+          guitarString.SetPosition(1, worldPos); // Change position of middle point in linerenderer
           break;
       }
     }
 
+    // When the string is released
     // TODO: Add for phone too
     if (Input.GetMouseButtonUp(0) && myState == States.Playing)
     {
       SetText("Ringing");
       myState = States.Ringing;
+      ringingAmplitude = guitarString.GetPosition(1).x;
+      ringTime = 0;
+      // TODO: Start vibration
+    }
+
+    // Make the string move back and forth like a spring
+    if (myState == States.Ringing)
+    {
+      Vector3 gp = guitarString.GetPosition(1);
+      if (ringTime > maxRingTime)
+      {
+        // TODO: Stop vibration
+        gp.x = 0;
+        guitarString.SetPosition(1, gp);
+        myState = States.Idle;
+        return;
+      }
+      gp.x = ringingAmplitude / (Mathf.Pow(1 + ringTime, swingDecay)) * Mathf.Cos(ringTime * swingSpeed);
+      guitarString.SetPosition(1, gp);
+      ringTime += Time.deltaTime;
     }
   }
 
