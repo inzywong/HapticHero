@@ -5,8 +5,10 @@ using UnityEngine.UI;
 
 public class GuitarStringInteraction : MonoBehaviour
 {
-  int count;
-  // String state
+  public float swingSpeed = 10;
+  public float swingDecay = 2;
+  public float maxRingTime = 1.5f;
+  // String states
   enum States { Idle, Playing, Ringing };
   States myState;
   public Text currentState;
@@ -14,15 +16,14 @@ public class GuitarStringInteraction : MonoBehaviour
   float distToLine;
   float ringingAmplitude;
   float ringTime;
-  public float swingSpeed = 10;
-  public float swingDecay = 2;
-  public float maxRingTime = 1.5f;
+  AudioSource audioSource;
 
   void Start()
   {
     myState = States.Idle;
     guitarString = GetComponent<LineRenderer>();
     distToLine = transform.position.z - Camera.main.transform.position.z;
+    audioSource = GetComponent<AudioSource>();
   }
 
   // When finger is released use spring model and set state to Ringing. 
@@ -53,7 +54,7 @@ public class GuitarStringInteraction : MonoBehaviour
           Vector3 worldPos = new Vector3(touchPos.x, touchPos.y, distToLine);
           worldPos = Camera.main.ScreenToWorldPoint(worldPos);
           worldPos.z = 0; // Force same z position
-          guitarString.SetPosition(1, worldPos); // Change position of middle point in linerenderer
+          guitarString.SetPosition(1, worldPos); // Change position of middle point in linerenderer¨
           break;
       }
     }
@@ -66,6 +67,7 @@ public class GuitarStringInteraction : MonoBehaviour
       myState = States.Ringing;
       ringingAmplitude = guitarString.GetPosition(1).x;
       ringTime = 0;
+      audioSource.Play();
       // TODO: Start vibration
     }
 
@@ -79,6 +81,7 @@ public class GuitarStringInteraction : MonoBehaviour
         gp.x = 0;
         guitarString.SetPosition(1, gp);
         myState = States.Idle;
+        audioSource.Stop();
         return;
       }
       gp.x = ringingAmplitude / (Mathf.Pow(1 + ringTime, swingDecay)) * Mathf.Cos(ringTime * swingSpeed);
