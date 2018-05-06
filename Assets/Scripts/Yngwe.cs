@@ -10,13 +10,18 @@ public class Yngwe : MonoBehaviour
   enum States { Idle, Playing, Ringing };
   States myState;
   public Text currentState;
+  LineRenderer guitarString;
+  float distToLine;
+
+  public CapsuleCollider cl;
 
   void Start()
   {
     myState = States.Idle;
+    guitarString = GetComponent<LineRenderer>();
+    distToLine = transform.position.z - Camera.main.transform.position.z;
   }
 
-  // Split line into 2 and set endpoints at finger location
   // When finger is released use spring model and set state to Ringing. 
   // When string stops moving, set it to Idle again.
   void Update()
@@ -39,9 +44,13 @@ public class Yngwe : MonoBehaviour
             SetText("Playing");
           }
           break;
+        // Change position of second position in linerenderer to follow cursor
         case States.Playing:
-          Vector3 worldPos = Camera.main.ScreenToWorldPoint(touchPos);
-
+          // Give depth to touch pos to get correct screenToWorldPoint
+          Vector3 worldPos = new Vector3(touchPos.x, touchPos.y, distToLine);
+          worldPos = Camera.main.ScreenToWorldPoint(worldPos);
+          worldPos.z = 0; // Force same z position
+          guitarString.SetPosition(1, worldPos); // Change position of middle point
           break;
       }
     }
