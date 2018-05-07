@@ -119,7 +119,6 @@ GameObject:
   - component: {fileID: 87417647}
   - component: {fileID: 87417650}
   - component: {fileID: 87417649}
-  - component: {fileID: 87417651}
   - component: {fileID: 87417652}
   m_Layer: 0
   m_Name: Guitarstring
@@ -237,8 +236,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.1, y: 10.1, z: 0.45}
-  m_Center: {x: 0, y: 5, z: 0}
+  m_Size: {x: 0.5, y: 20, z: 0.45}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &87417650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,18 +253,6 @@ MonoBehaviour:
   swingDecay: 4
   maxRingTime: 2
   currentState: {fileID: 1835354551}
---- !u!65 &87417651
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 87417646}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.1, y: 10, z: 0.45}
-  m_Center: {x: 0, y: -5, z: 0}
 --- !u!82 &87417652
 AudioSource:
   m_ObjectHideFlags: 0
@@ -556,7 +543,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: New Text
+  m_Text: Idle
 --- !u!222 &1835354552
 CanvasRenderer:
   m_ObjectHideFlags: 0

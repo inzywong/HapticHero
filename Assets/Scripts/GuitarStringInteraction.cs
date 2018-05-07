@@ -55,6 +55,8 @@ public class GuitarStringInteraction : MonoBehaviour
           worldPos = Camera.main.ScreenToWorldPoint(worldPos);
           worldPos.z = 0; // Force same z position
           guitarString.SetPosition(1, worldPos); // Change position of middle point in linerenderer¨
+          VibrationA7.Cancel(); // Cancel if string is grabbed whilst ringing
+          audioSource.Stop();
           break;
       }
     }
@@ -68,6 +70,8 @@ public class GuitarStringInteraction : MonoBehaviour
       ringingAmplitude = guitarString.GetPosition(1).x;
       ringTime = 0;
       audioSource.Play();
+      // Vibration.Vibrate(10000);
+      VibrationA7.Vibrate(2000);
       // TODO: Start vibration
     }
 
@@ -82,6 +86,9 @@ public class GuitarStringInteraction : MonoBehaviour
         guitarString.SetPosition(1, gp);
         myState = States.Idle;
         audioSource.Stop();
+        SetText("Idle");
+        // Vibration.Cancel();
+        VibrationA7.Cancel();
         return;
       }
       gp.x = ringingAmplitude / (Mathf.Pow(1 + ringTime, swingDecay)) * Mathf.Cos(ringTime * swingSpeed);

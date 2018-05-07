@@ -5,6 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Sphere.unity
     guid: fab1426ad144466479ad013118b0215a
+  - enabled: 1
+    path: Assets/Guitar String.unity
+    guid: 9ddad5a14d6abf94387ad2b6f20e50d6
