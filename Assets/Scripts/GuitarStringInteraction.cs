@@ -13,7 +13,7 @@ public class GuitarStringInteraction : MonoBehaviour
   States myState;
   public Text currentState;
   LineRenderer guitarString;
-  float distToLine;
+  public float distToLine;
   float ringingAmplitude;
   float ringTime;
   AudioSource audioSource;
@@ -44,8 +44,10 @@ public class GuitarStringInteraction : MonoBehaviour
           RaycastHit hit;
           if (Physics.Raycast(ray, out hit, 10000))
           {
-            myState = States.Playing;
-            SetText("Playing");
+            if(hit.collider == GetComponent<BoxCollider>()){
+              myState = States.Playing;
+              SetText("Playing");
+            }
           }
           break;
         // Change position of second position in linerenderer to follow cursor
@@ -54,7 +56,7 @@ public class GuitarStringInteraction : MonoBehaviour
           Vector3 worldPos = new Vector3(touchPos.x, touchPos.y, distToLine);
           worldPos = Camera.main.ScreenToWorldPoint(worldPos);
           worldPos.z = 0; // Force same z position
-          guitarString.SetPosition(1, worldPos); // Change position of middle point in linerenderer¨
+          guitarString.SetPosition(1, (worldPos-transform.position) ); // Change position of middle point in linerenderer¨
           VibrationA7.Cancel(); // Cancel if string is grabbed whilst ringing
           audioSource.Stop();
           break;
