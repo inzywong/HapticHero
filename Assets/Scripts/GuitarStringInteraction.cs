@@ -8,6 +8,7 @@ public class GuitarStringInteraction : MonoBehaviour
   public float swingSpeed = 10;
   public float swingDecay = 2;
   public float maxRingTime = 1.5f;
+	private float maxDistance = 0.5f;
   // String states
   enum States { Idle, Playing, Ringing };
   States myState;
@@ -18,13 +19,19 @@ public class GuitarStringInteraction : MonoBehaviour
   float ringTime;
   AudioSource audioSource;
 
+	bool useVibration;
+	bool useSound;
+
   void Start()
   {
     myState = States.Idle;
     guitarString = GetComponent<LineRenderer>();
     distToLine = transform.position.z - Camera.main.transform.position.z;
     audioSource = GetComponent<AudioSource>();
-  }
+
+		useVibration = (PlayerPrefs.GetInt("Vibration", 0) == 1 ? true : false);
+		useSound = (PlayerPrefs.GetInt("Sound", 0) == 1 ? true : false);
+	}
 
   // When finger is released use spring model and set state to Ringing. 
   // When string stops moving, set it to Idle again.
@@ -44,6 +51,7 @@ public class GuitarStringInteraction : MonoBehaviour
           RaycastHit hit;
           if (Physics.Raycast(ray, out hit, 10000))
           {
+						// Check if ray hits collider attached to this object, otherwize all strings will trigger
             if(hit.collider == GetComponent<BoxCollider>()){
               myState = States.Playing;
               SetText("Playing");
@@ -55,26 +63,25 @@ public class GuitarStringInteraction : MonoBehaviour
           // Give depth to touch pos to get correct screenToWorldPoint
           Vector3 worldPos = new Vector3(touchPos.x, touchPos.y, distToLine);
           worldPos = Camera.main.ScreenToWorldPoint(worldPos);
-          worldPos.z = 0; // Force same z position
-          guitarString.SetPosition(1, (worldPos-transform.position) ); // Change position of middle point in linerenderer¨
-          VibrationA7.Cancel(); // Cancel if string is grabbed whilst ringing
-          audioSource.Stop();
+          worldPos.z = 0; // Force z position to z, which is the default z pos of the string
+					Vector3 relativePos = worldPos - transform.position;
+          guitarString.SetPosition(1, relativePos); // Change position of middle point in linerenderer¨
+
+					VibrationA7.Cancel(); // Cancel if string is grabbed whilst ringing
+					audioSource.Stop();
+					if (Mathf.Abs(relativePos.x) > maxDistance)
+					{
+						ReleaseString();
+					}
+
           break;
       }
     }
 
     // When the string is released
-    // TODO: Add for phone too
     if (Input.GetMouseButtonUp(0) && myState == States.Playing)
     {
-      SetText("Ringing");
-      myState = States.Ringing;
-      ringingAmplitude = guitarString.GetPosition(1).x;
-      ringTime = 0;
-      audioSource.Play();
-      // Vibration.Vibrate(10000);
-      VibrationA7.Vibrate(2000);
-      // TODO: Start vibration
+			ReleaseString();
     }
 
     // Make the string move back and forth like a spring
@@ -83,7 +90,6 @@ public class GuitarStringInteraction : MonoBehaviour
       Vector3 gp = guitarString.GetPosition(1);
       if (ringTime > maxRingTime)
       {
-        // TODO: Stop vibration
         gp.x = 0;
         guitarString.SetPosition(1, gp);
         myState = States.Idle;
@@ -103,5 +109,17 @@ public class GuitarStringInteraction : MonoBehaviour
   {
     currentState.text = text;
   }
+
+	void ReleaseString()
+	{
+		SetText("Ringing");
+		myState = States.Ringing;
+		ringingAmplitude = guitarString.GetPosition(1).x;
+		ringTime = 0;
+		if(useSound)
+			audioSource.Play();
+		if(useVibration)
+			VibrationA7.Vibrate(2000);
+	}
 
 }
