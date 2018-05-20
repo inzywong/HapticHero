@@ -9,9 +9,11 @@ EditorBuildSettings:
     path: Assets/Sphere.unity
     guid: fab1426ad144466479ad013118b0215a
   - enabled: 1
+    path: Assets/StartScreen.unity
+    guid: ffeeb60ee0bed604cb6f9c15911a1c73
+  - enabled: 1
     path: Assets/6 Guitar Strings.unity
     guid: 9ddad5a14d6abf94387ad2b6f20e50d6
   - enabled: 1
-    path: Assets/StartScreen.unity
-    guid: ffeeb60ee0bed604cb6f9c15911a1c73
-  m_configObjects: {}
+    path: Assets/4 Guitar Strings.unity
+    guid: 4ee8b7b809611124c9359eef384b29a3
